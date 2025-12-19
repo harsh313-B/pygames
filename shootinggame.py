@@ -204,3 +204,4 @@ while done:
                 solder.jump_count = 10
     
     DrawInGameloop()
+    print("hello git")
