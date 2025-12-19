@@ -56,6 +56,11 @@ class player():
         self.hitbox = (self.x + 20, self.y, self.width - 40, self.height - 4)
         #pygame.draw.rect(screen, (0, 0, 0), self.hitbox, 2)
         self.hit = pygame.Rect(self.hitbox)
+    
+    def touch(self):
+        self.x = 0
+        self.y = w_height - self.height
+
 
 class projectile():
     def __init__(self, x, y, radius, color, facing):
@@ -82,21 +87,30 @@ class enemy():
         self.path = [x, w_width - self.width]
         self.hitbox = (self.x + 20, self.y, self.width - 40, self.height - 4)
         self.hit = pygame.Rect(self.hitbox)
+        self.health = 10
+        self.max_health = 10
+        self.visible = True
 
     def draw(self, screen):
-            # enemy has 8 frames; 8 * 3 = 24 animation ticks
-            if self.walk_count + 1 >= 24:
-                self.walk_count = 0
+            if self.visible:
+                # enemy has 8 frames; 8 * 3 = 24 animation ticks
+                if self.walk_count + 1 >= 24:
+                    self.walk_count = 0
 
-            if self.vel > 0:
-                screen.blit(moveRight[self.walk_count // 3], (self.x, self.y))
-                self.walk_count += 1
-            else:
-                screen.blit(moveLeft[self.walk_count // 3], (self.x, self.y))
-                self.walk_count += 1
-            self.hitbox = (self.x + 20, self.y, self.width - 40, self.height - 4)
-            #pygame.draw.rect(screen, (0, 0, 0), self.hitbox, 2)
-            self.hit = pygame.Rect(self.hitbox)
+                if self.vel > 0:
+                    screen.blit(moveRight[self.walk_count // 3], (self.x, self.y))
+                    self.walk_count += 1
+                else:
+                    screen.blit(moveLeft[self.walk_count // 3], (self.x, self.y))
+                    self.walk_count += 1
+                self.hitbox = (self.x + 20, self.y, self.width - 40, self.height - 4)
+                #pygame.draw.rect(screen, (0, 0, 0), self.hitbox, 2)
+                self.hit = pygame.Rect(self.hitbox)
+                # draw health background and scaled health bar
+                pygame.draw.rect(screen, (128, 128, 128), (self.hitbox[0], self.hitbox[1] + 3, 50, 10), 0)
+                green_width = int(50 * max(self.health, 0) / self.max_health)
+                if green_width > 0:
+                    pygame.draw.rect(screen, (0, 128, 0), (self.hitbox[0], self.hitbox[1] + 3, green_width, 10), 0)
 
     def move(self):
         if self.vel > 0:
@@ -113,6 +127,12 @@ class enemy():
                 self.vel = self.vel * -1
                 self.x += self.vel
                 self.walk_count = 0
+    def touch(self):
+        if self.health > 0:
+            self.health -= 1
+            if self.health <= 0:
+                self.visible = False
+        
 
 def DrawInGameloop():
 
@@ -138,8 +158,10 @@ while done:
         if event.type == pygame.QUIT:
             done = False
     
-    if solder.hit.colliderect(enemy_obj.hit):
-        enemy_obj.vel = enemy_obj.vel * -1
+    if enemy_obj.visible:
+        if solder.hit.colliderect(enemy_obj.hit):
+            enemy_obj.vel = enemy_obj.vel * -1
+            solder.touch()
 
     if shoot > 0:
         shoot += 1
@@ -147,11 +169,13 @@ while done:
         shoot = 0
 
     for bullet in bullets:
-        if bullet.y - bullet.radius < enemy_obj.hitbox[1] + enemy_obj.hitbox[3] and bullet.y + bullet.radius > enemy_obj.hitbox[1]:
-            if bullet.x + bullet.radius > enemy_obj.hitbox[0] and bullet.x - bullet.radius < enemy_obj.hitbox[0] + enemy_obj.hitbox[2]:
-                #print("Hit!")
-                bullets.pop(bullets.index(bullet))
-                score += 1
+        if enemy_obj.visible:
+            if bullet.y - bullet.radius < enemy_obj.hitbox[1] + enemy_obj.hitbox[3] and bullet.y + bullet.radius > enemy_obj.hitbox[1]:
+                if bullet.x + bullet.radius > enemy_obj.hitbox[0] and bullet.x - bullet.radius < enemy_obj.hitbox[0] + enemy_obj.hitbox[2]:
+                    #print("Hit!")
+                    bullets.pop(bullets.index(bullet))
+                    score += 1
+                    enemy_obj.touch()
 
         if 0 < bullet.x < w_width:
             bullet.x += bullet.vel
@@ -204,4 +228,4 @@ while done:
                 solder.jump_count = 10
     
     DrawInGameloop()
-    print("hello git")
+    
