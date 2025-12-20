@@ -21,7 +21,7 @@ bulletsound = pygame.mixer.Sound("/home/raven/Public/pygames/sounds/Bulletsound.
 hitsound = pygame.mixer.Sound("/home/raven/Public/pygames/sounds/Hit.ogg")
 music = pygame.mixer.music.load("/home/raven/Public/pygames/sounds/music.mp3")
 pygame.mixer.music.play(-1)
-pygame.mixer.music.set_volume(0.6)
+pygame.mixer.music.set_volume(0.2)
 
 class player():
 
@@ -65,6 +65,8 @@ class player():
     def touch(self):
         self.x = 0
         self.y = w_height - self.height
+        self.is_jump = False
+        self.jump_count = 10
 
 
 class projectile():
@@ -119,7 +121,8 @@ class enemy():
 
     def move(self):
         if self.vel > 0:
-            if self.x < self.path[1] - self.width:
+            # move right until the defined right path boundary
+            if self.x < self.path[1]:
                 self.x += self.vel
             else:
                 self.vel = self.vel * -1
@@ -155,7 +158,8 @@ def DrawInGameloop():
     pygame.display.flip()
 
 solder = player(210, 435, 64, 64)
-enemy_obj = enemy(0, w_width - 64, 64, 64)
+# place enemy near bottom using window height (was using w_width incorrectly)
+enemy_obj = enemy(0, w_height - 64, 64, 64)
 bullets = []
 shoot = 0
 done = True
