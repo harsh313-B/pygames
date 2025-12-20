@@ -17,6 +17,11 @@ moveLeft = [pygame.image.load(f'/home/raven/Public/pygames/enemy/L{i}.png') for 
 moveRight = [pygame.image.load(f'/home/raven/Public/pygames/enemy/R{i}.png') for i in range(1, 9)]
 font = pygame.font.SysFont("helvetica", 30, 1, 1)
 score = 0
+bulletsound = pygame.mixer.Sound("/home/raven/Public/pygames/sounds/Bulletsound.ogg")
+hitsound = pygame.mixer.Sound("/home/raven/Public/pygames/sounds/Hit.ogg")
+music = pygame.mixer.music.load("/home/raven/Public/pygames/sounds/music.mp3")
+pygame.mixer.music.play(-1)
+pygame.mixer.music.set_volume(0.6)
 
 class player():
 
@@ -128,6 +133,7 @@ class enemy():
                 self.x += self.vel
                 self.walk_count = 0
     def touch(self):
+        hitsound.play()
         if self.health > 0:
             self.health -= 1
             if self.health <= 0:
@@ -184,6 +190,7 @@ while done:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_SPACE] and shoot == 0:
+        bulletsound.play()
         facing = solder.facing
         if len(bullets) < 5:
             bullets.append(projectile(round(solder.x + solder.width // 2), round(solder.y + solder.height // 2), 6, (19, 12, 22), facing))
